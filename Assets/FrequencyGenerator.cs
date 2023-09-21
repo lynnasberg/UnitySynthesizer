@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -25,19 +26,182 @@ public class FrequencyGenerator
         return list;
     }
 
+    public List<float> GenerateChord(Note rootNote, int octave, ChordType chordType,
+        Intonation intonation = Intonation.EqualTemperament)
+    {
+        var list = new List<float>();
+
+        switch (intonation)
+        {
+            case Intonation.EqualTemperament:
+                GenerateEqualTemperamentChord(rootNote, octave, chordType, ref list);
+                break;
+            
+            case Intonation.JustIntonation:
+                GenerateJustIntonationChord(GetFrequency(rootNote, octave), chordType, ref list);
+                break;
+            
+            default:
+                throw new ArgumentOutOfRangeException(nameof(intonation), intonation, null);
+        }
+
+        return list;
+    }
+
+    private const float MinorThird = 6f / 5f;
+    private const float MajorThird = 5f / 4f;
+    private const float MajorFifth = 3f / 2f;
+    private const float HarmonicSeventh = 9f / 5f;
+    private const float MajorSeventh = 15f / 8f;
+    private const float MajorFourth = 4f / 3f;
+    private const float DiminishedFifth = 64f / 45f;
+    private const float DiminishedThird = 256f / 225f;
+    private const float AugmentedFifth = 25f / 16f;
+
+    private static void GenerateJustIntonationChord(float rootFrequency, ChordType chordType, ref List<float> list)
+    {
+        switch (chordType)
+        {
+            case ChordType.Major:
+                list.Add(rootFrequency);
+                list.Add(rootFrequency * MajorThird);
+                list.Add(rootFrequency * MajorFifth);
+                break;
+            
+            case ChordType.Minor:
+                list.Add(rootFrequency);
+                list.Add(rootFrequency * MinorThird);
+                list.Add(rootFrequency * MajorFifth);
+                break;
+
+            case ChordType.Seventh:
+                list.Add(rootFrequency);
+                list.Add(rootFrequency * MinorThird);
+                list.Add(rootFrequency * MajorFifth);
+                list.Add(rootFrequency * HarmonicSeventh);
+                break;
+            
+            case ChordType.MajorSeventh:
+                list.Add(rootFrequency);
+                list.Add(rootFrequency * MinorThird);
+                list.Add(rootFrequency * MajorFifth);
+                list.Add(rootFrequency * MajorSeventh);
+                break;
+            
+            case ChordType.Augmented:
+                list.Add(rootFrequency);
+                list.Add(rootFrequency * MajorThird);
+                list.Add(rootFrequency * MajorThird * MajorThird);
+                break;
+            
+            case ChordType.Diminished:
+                list.Add(rootFrequency);
+                list.Add(rootFrequency * DiminishedThird);
+                list.Add(rootFrequency * DiminishedFifth);
+                break;
+            
+            default:
+                throw new ArgumentOutOfRangeException(nameof(chordType), chordType, null);
+        }
+    }
+
+    private void GenerateEqualTemperamentChord(Note rootNote, int octave, ChordType chordType, ref List<float> list)
+    {
+        switch (chordType)
+        {
+            case ChordType.Major:
+                list.Add(GetFrequency(rootNote, octave));
+                list.Add(GetFrequency(rootNote + 4, octave));
+                list.Add(GetFrequency(rootNote + 7, octave));
+                break;
+            
+            case ChordType.Minor:
+                list.Add(GetFrequency(rootNote, octave));
+                list.Add(GetFrequency(rootNote + 3, octave));
+                list.Add(GetFrequency(rootNote + 7, octave));
+                break;
+
+            case ChordType.Seventh:
+                list.Add(GetFrequency(rootNote, octave));
+                list.Add(GetFrequency(rootNote + 3, octave));
+                list.Add(GetFrequency(rootNote + 7, octave));
+                list.Add(GetFrequency(rootNote + 10, octave));
+                break;
+            
+            case ChordType.MajorSeventh:
+                list.Add(GetFrequency(rootNote, octave));
+                list.Add(GetFrequency(rootNote + 3, octave));
+                list.Add(GetFrequency(rootNote + 7, octave));
+                list.Add(GetFrequency(rootNote + 11, octave));
+                break;
+            
+            case ChordType.Augmented:
+                list.Add(GetFrequency(rootNote, octave));
+                list.Add(GetFrequency(rootNote + 5, octave));
+                list.Add(GetFrequency(rootNote + 8, octave));
+                break;
+            
+            case ChordType.Diminished:
+                list.Add(GetFrequency(rootNote, octave));
+                list.Add(GetFrequency(rootNote + 3, octave));
+                list.Add(GetFrequency(rootNote + 6, octave));
+                break;
+            
+            default:
+                throw new ArgumentOutOfRangeException(nameof(chordType), chordType, null);
+        }
+    }
+
     public float GetFrequency(Note note, int octave)
     {
         return A4Frequency * Mathf.Pow(2.0f, ((float)(note + 2)) / 12f + (octave - 4));
     }
 
+    public enum Intonation
+    {
+        EqualTemperament = 0,
+        JustIntonation = 1,
+    }
+
+    public enum ChordType
+    {
+        Major = 0,
+        Minor = 1,
+        Seventh,
+        MajorSeventh,
+        Augmented,
+        Diminished,
+    }
+
     public enum Note
     {
         C = 0,
-        D = 1,
-        E = 2,
-        F = 3,
-        G = 4,
-        A = 5,
-        B = 6,
+        
+        CSharp = 1,
+        DFlat = 1,
+        
+        D = 2,
+        
+        DSharp = 3,
+        EFlat = 3,
+        
+        E = 4,
+        
+        F = 5,
+        
+        FSharp = 6,
+        GFlat = 6,
+        
+        G = 7,
+        
+        GSharp = 8,
+        AFlat = 8,
+        
+        A = 9,
+        
+        ASharp = 10,
+        BFlat = 10,
+        
+        B = 11
     }
 }

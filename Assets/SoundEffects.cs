@@ -9,7 +9,7 @@ public class SoundEffects : MonoBehaviour
         Reverb
     }
 
-    public static void ApplyEffect(ref float[] samples, float sampleRate, SoundEffectType soundEffectType)
+    public static void ApplyEffect(ref float[,] samples, float sampleRate, float sampleCount, SoundEffectType soundEffectType)
     {
         switch (soundEffectType)
         {
@@ -19,13 +19,14 @@ public class SoundEffects : MonoBehaviour
                 
                 for (var reflection = 0; reflection < 5; reflection++)
                 {
-                    delay += (int)(0.8f * sampleRate);
-                    amplitude *= 0.3f;
-                    
-                    for (var i = reflection % 2; i < samples.Length; i += 2)
+                    delay += (int)(0.3f * sampleRate);
+                    amplitude *= 0.5f;
+
+                    for (var i = 0; i < sampleCount; i++)
                     {
-                        if (i + delay >= samples.Length) break;
-                        samples[i + delay] += amplitude * samples[i];
+                        if (i + delay >= sampleCount) break;
+                        var channel = reflection % 2;
+                        samples[i + delay, channel] += amplitude * samples[i, channel];
                     }
                 }
 

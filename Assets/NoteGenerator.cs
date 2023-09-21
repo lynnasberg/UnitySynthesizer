@@ -4,23 +4,24 @@ using UnityEngine;
 
 public static class NoteGenerator
 {
+    private const float SuperSawDetuneCents = 15f;
+    
     public static void PlayNote(float frequency, float pan, NoteAttributes noteAttributes, List<SoundEffects.SoundEffectType> soundEffects = null)
     {
         var clipDuration = (noteAttributes.Duration + noteAttributes.Envelope.Release) + 0.0f;
 
         var sampleCount = (int)(clipDuration * AudioSettings.outputSampleRate);
-        var audioClip = AudioClip.Create("GeneratedAudio", sampleCount * 2, 2, AudioSettings.outputSampleRate, false);
         var sampleRate = (float)AudioSettings.outputSampleRate;
-        
-        var samples = new float[audioClip.samples];
+
+        var samples = new float[sampleCount, 2];
 
         // generate samples
         for (var i = 0; i < sampleCount; i++)
         {
             var t = i / sampleRate;
             var sample = GetSample(t, frequency, noteAttributes);
-            samples[i * 2] = Mathf.Lerp(1f, 0f, pan) * sample;
-            samples[i * 2 + 1] = Mathf.Lerp(1f, 0f, -pan) * sample;
+            samples[i, 0] = Mathf.Lerp(1f, 0f, pan) * sample;
+            samples[i, 1] = Mathf.Lerp(1f, 0f, -pan) * sample;
         }
 
         // apply effects
@@ -28,12 +29,20 @@ public static class NoteGenerator
         {
             foreach (var soundEffect in soundEffects)
             {
-                SoundEffects.ApplyEffect(ref samples, sampleRate, soundEffect);
+                SoundEffects.ApplyEffect(ref samples, sampleRate, sampleCount, soundEffect);
             }
         }
 
         // Set the samples to the audio clip
-        audioClip.SetData(samples, 0);
+        var samplesInterleaved = new float[sampleCount * 2];
+        for (var i = 0; i < sampleCount; i++)
+        {
+            samplesInterleaved[i * 2 + 0] = samples[i, 0];
+            samplesInterleaved[i * 2 + 1] = samples[i, 1];
+        }
+        
+        var audioClip = AudioClip.Create("GeneratedAudio", sampleCount * 2, 2, AudioSettings.outputSampleRate, false);
+        audioClip.SetData(samplesInterleaved, 0);
         
         AudioSourcePool.Instance.PlayAudioClip(audioClip);
     }
@@ -51,7 +60,8 @@ public static class NoteGenerator
         SawTooth = 0,
         Sine = 1,
         Square = 2,
-        Triangle = 3
+        Triangle = 3,
+        SuperSaw = 4,
     }
     
     private static float GetSample(float t, float f, NoteAttributes noteAttributes)
@@ -62,7 +72,7 @@ public static class NoteGenerator
             WaveFormType.Sine => SineWave(t, f, noteAttributes.Amplitude),
             WaveFormType.Square => SquareWave(t, f, noteAttributes.Amplitude),
             WaveFormType.Triangle => TriangleWave(t, f, noteAttributes.Amplitude),
-            
+            WaveFormType.SuperSaw => SuperSawWave(t, f, noteAttributes.Amplitude),
             _ => throw new ArgumentOutOfRangeException(nameof(noteAttributes.WaveFormType), noteAttributes.WaveFormType, null)
         };
 
@@ -124,6 +134,15 @@ public static class NoteGenerator
         var normalizedT = (t / T) - Mathf.Floor(t / T);
     
         return (2.0f * A) * (normalizedT - 0.5f);
+    }
+
+    private static float SuperSawWave(float t, float f, float A)
+    {
+        var wave1 = SawtoothWave(t, f, A);
+        var wave2 = SawtoothWave(t, f * Mathf.Pow(2.0f, SuperSawDetuneCents / 1200f), A);
+        var wave3 = SawtoothWave(t, f * Mathf.Pow(2.0f, -SuperSawDetuneCents / 1200f), A);
+
+        return (wave1 + wave2 + wave3) * 0.33333333f;
     }
 
     private static float SineWave(float t, float f, float A)
