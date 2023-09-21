@@ -125,7 +125,7 @@ public static class NoteGenerator
             return e;
         }
 
-        public static Envelope Default = new () { Attack = 0.0f, Decay = 0.0f, Sustain = 1.0f, Release = 0.0f };
+        public static Envelope Default = new () { Attack = 0.05f, Decay = 0.0f, Sustain = 1.0f, Release = 0.05f };
     }
     
     private static float SawtoothWave(float t, float f, float A)

@@ -20,8 +20,8 @@ public class AudioGenerator : MonoBehaviour
         _noteAttributes = new NoteGenerator.NoteAttributes()
         {
             Amplitude = 0.4f,
-            Duration = 2.0f,
-            Envelope = new NoteGenerator.Envelope {Attack = 0.5f, Decay = 0.25f, Sustain = 0.5f, Release = 1.0f},
+            Duration = 0.3f,
+            Envelope = new NoteGenerator.Envelope {Attack = 0.05f, Decay = 0.25f, Sustain = 0.3f, Release = 0.05f},
             WaveFormType = NoteGenerator.WaveFormType.SawTooth
         };
         
@@ -45,14 +45,36 @@ public class AudioGenerator : MonoBehaviour
     private IEnumerator PlayStuff()
     {
         var frequencyGenerator = new FrequencyGenerator();
-        var chord = frequencyGenerator.GenerateChord(FrequencyGenerator.Note.C, 3, FrequencyGenerator.ChordType.Augmented, FrequencyGenerator.Intonation.EqualTemperament);
 
-        foreach (var note in chord)
-        {
-            NoteGenerator.PlayNote(note, 0.0f, _noteAttributes, _soundEffects);
-        }
+        var intonation = FrequencyGenerator.Intonation.JustIntonation;
+        var repetitions = 4;
 
-        yield break;
+        var longnote = _noteAttributes;
+        longnote.Duration = 9.6f;
+        longnote.Amplitude = 0.5f;
+        longnote.WaveFormType = NoteGenerator.WaveFormType.SuperSaw;
+        longnote.Envelope = NoteGenerator.Envelope.Default;
+        
+        NoteGenerator.PlayNote(_frequencyGenerator.GetFrequency(FrequencyGenerator.Note.C, 1), 0f, longnote, _soundEffects);
+        longnote.Amplitude = 0.15f;
+        NoteGenerator.PlayNote(_frequencyGenerator.GetFrequency(FrequencyGenerator.Note.C, 5), -1f, longnote, _soundEffects);
+        NoteGenerator.PlayNote(_frequencyGenerator.GetFrequency(FrequencyGenerator.Note.C, 5) * 1.01f, 1f, longnote, _soundEffects);
+        
+        yield return Arpeggiator.PlaySequence(
+            frequencyGenerator.GenerateChord(FrequencyGenerator.Note.C, 3, FrequencyGenerator.ChordType.Minor, intonation)
+            , _noteAttributes, _soundEffects, repetitions);
+        
+        yield return Arpeggiator.PlaySequence(
+            frequencyGenerator.GenerateChord(FrequencyGenerator.Note.BFlat, 2, FrequencyGenerator.ChordType.Major, intonation)
+            , _noteAttributes, _soundEffects, repetitions);
+        
+        yield return Arpeggiator.PlaySequence(
+            frequencyGenerator.GenerateChord(FrequencyGenerator.Note.AFlat, 2, FrequencyGenerator.ChordType.Major, intonation)
+            , _noteAttributes, _soundEffects, repetitions);
+        
+        yield return Arpeggiator.PlaySequence(
+            frequencyGenerator.GenerateChord(FrequencyGenerator.Note.G, 2, FrequencyGenerator.ChordType.Major, intonation)
+            , _noteAttributes, _soundEffects, repetitions);
 
         /*foreach (var offset in FrequencyGenerator.MajorScaleOffsets)
         {
