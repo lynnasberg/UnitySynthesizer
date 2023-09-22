@@ -38,10 +38,16 @@ public class Synthesizer : MonoBehaviour
     {
         yield return new WaitForSeconds(1.0f);
         
-        var instrument = new SampleGenerator.Instrument()
+        var padInstrument = new SampleGenerator.Instrument()
         {
             Envelope = new SampleGenerator.Envelope(2.0f, 2.0f, 0.5f, 2.0f),
-            WaveFormType = SampleGenerator.WaveFormType.SawTooth
+            WaveFormType = SampleGenerator.WaveFormType.Strings
+        };
+        
+        var bassInstrument = new SampleGenerator.Instrument()
+        {
+            Envelope = new SampleGenerator.Envelope(0.01f, 0.08f, 0.25f, 0.05f),
+            WaveFormType = SampleGenerator.WaveFormType.SuperSaw
         };
         
         var soundEffects = new List<SoundEffects.SoundEffectType>()
@@ -49,25 +55,28 @@ public class Synthesizer : MonoBehaviour
             SoundEffects.SoundEffectType.StereoEcho, SoundEffects.SoundEffectType.StereoChorus
         };
 
-        var scale = new List<int>() { 1, 3, 6, 8, 10 };
+        var scale = new List<int>() { 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27 };
 
-        for (var i = 12; i <= 36; i += 12)
+        /*for (var i = 12; i <= 36; i += 12)
         {
             scale.Add(scale[0] + i);
             scale.Add(scale[1] + i);
             scale.Add(scale[2] + i);
             scale.Add(scale[3] + i);
             scale.Add(scale[4] + i);
-        }
+        }*/
 
         var currentIndices = new [] { 4, 8, 12 };
 
         while (true)
         {
-            //var chord = FrequencyGenerator.GenerateChord((FrequencyGenerator.Pitch)(scale[0]), 2,
-            //    (FrequencyGenerator.ChordType)Random.Range(0, 6), FrequencyGenerator.Intonation.EqualTemperament);
-
+            //
+            // CHORDS
+            //
+            
             var interval = Interval.Whole * 2;
+
+            var bassFrequency = float.MaxValue;
 
             foreach (var index in currentIndices)
             {
@@ -75,13 +84,26 @@ public class Synthesizer : MonoBehaviour
                 var note = new Note()
                 {
                     Amplitude = 0.5f,
-                    Frequency = FrequencyGenerator.GetFrequency(offset, 1),
+                    Frequency = FrequencyGenerator.GetFrequency(offset, 2),
                     Interval = interval
                 };
+
+                if (note.Frequency < bassFrequency) bassFrequency = note.Frequency;
                     
-                SampleGenerator.PlayNote(note, instrument, 0.0f, soundEffects);
+                SampleGenerator.PlayNote(note, padInstrument, 0.0f, soundEffects);
             }
-                
+            
+            //
+            // BASS
+            //
+
+            /*bassFrequency *= 0.5f;
+            while (bassFrequency < 55f) bassFrequency *= 2f;
+            while (bassFrequency > 200f) bassFrequency *= 0.5f;
+
+            yield return Arpeggiator.PlaySequence(new List<float> { bassFrequency }, 0.4f, Interval.Eighth, 0.9f, 32,
+                bassInstrument, soundEffects);*/
+
             yield return new WaitForSeconds(interval.TimeDuration);
 
             var i = Random.Range(0, 3);
