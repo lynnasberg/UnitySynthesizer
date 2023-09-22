@@ -5,6 +5,24 @@ using UnityEngine;
 
 public class Arpeggiator
 {
+    public float Amplitude;
+    public float Interval;
+    public float Gate;
+    
+    public List<float> Frequencies { get; } = new ();
+    private int _nextFrequencyIndex;
+
+    public void SetFrequencies(List<float> frequencies)
+    {
+        Frequencies.Clear();
+        foreach (var f in frequencies)  Frequencies.Add(f);
+    }
+
+    public void Play()
+    {
+        
+    }
+    
     public static IEnumerator PlaySequence(List<float> frequencies, float amplitude, Synthesizer.Interval interval, float gate,
         int repetitions, SampleGenerator.Instrument instrument, List<SoundEffects.SoundEffectType> soundEffects)
     {

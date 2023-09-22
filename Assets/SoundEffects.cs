@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class SoundEffects : MonoBehaviour
@@ -6,10 +7,10 @@ public class SoundEffects : MonoBehaviour
     public enum SoundEffectType
     {
         StereoEcho,
-        Reverb
+        StereoChorus
     }
 
-    public static void ApplyEffect(ref float[,] samples, float sampleRate, float sampleCount, SoundEffectType soundEffectType)
+    public static void ApplyEffect(ref float[,] samples, float sampleRate, int sampleCount, SoundEffectType soundEffectType)
     {
         switch (soundEffectType)
         {
@@ -26,13 +27,19 @@ public class SoundEffects : MonoBehaviour
                     {
                         if (i + delay >= sampleCount) break;
                         var channel = reflection % 2;
+                        
                         samples[i + delay, channel] += amplitude * samples[i, channel];
                     }
                 }
 
                 break;
             
-            case SoundEffectType.Reverb:
+            case SoundEffectType.StereoChorus:
+                var chorusDelay = 100;
+                for (var i = sampleCount - chorusDelay - 1; i >= 0; i--)
+                {
+                    samples[i + chorusDelay, 0] = samples[i, 0];
+                }
                 break;
             
             default:

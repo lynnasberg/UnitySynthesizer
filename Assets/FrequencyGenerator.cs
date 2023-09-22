@@ -154,7 +154,12 @@ public class FrequencyGenerator
 
     public float GetFrequency(Pitch pitch, int octave)
     {
-        return A4Frequency * Mathf.Pow(2.0f, ((float)(pitch + 2)) / 12f + (octave - 4));
+        return GetFrequency((int)pitch, octave);
+    }
+    
+    public float GetFrequency(int pitch, int octave)
+    {
+        return A4Frequency * Mathf.Pow(2.0f, (pitch + 2f) / 12f + (octave - 4));
     }
 
     public enum Intonation
@@ -167,10 +172,10 @@ public class FrequencyGenerator
     {
         Major = 0,
         Minor = 1,
-        Seventh,
-        MajorSeventh,
-        Augmented,
-        Diminished,
+        Seventh = 2,
+        MajorSeventh = 3,
+        Augmented = 4,
+        Diminished = 5,
     }
 
     public enum Pitch
