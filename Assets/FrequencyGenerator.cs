@@ -8,7 +8,7 @@ public class FrequencyGenerator
 
     public static readonly int[] MajorScaleOffsets = { 0, 2, 4, 5, 7, 9, 11 };
 
-    public List<float> GenerateScale(Note key, int lowestOctave, int highestOctave = int.MinValue)
+    public List<float> GenerateScale(Pitch key, int lowestOctave, int highestOctave = int.MinValue)
     {
         var list = new List<float>();
         var highestOctaveReal = Mathf.Max(lowestOctave, highestOctave);
@@ -26,7 +26,7 @@ public class FrequencyGenerator
         return list;
     }
 
-    public List<float> GenerateChord(Note rootNote, int octave, ChordType chordType,
+    public List<float> GenerateChord(Pitch rootPitch, int octave, ChordType chordType,
         Intonation intonation = Intonation.EqualTemperament)
     {
         var list = new List<float>();
@@ -34,11 +34,11 @@ public class FrequencyGenerator
         switch (intonation)
         {
             case Intonation.EqualTemperament:
-                GenerateEqualTemperamentChord(rootNote, octave, chordType, ref list);
+                GenerateEqualTemperamentChord(rootPitch, octave, chordType, ref list);
                 break;
             
             case Intonation.JustIntonation:
-                GenerateJustIntonationChord(GetFrequency(rootNote, octave), chordType, ref list);
+                GenerateJustIntonationChord(GetFrequency(rootPitch, octave), chordType, ref list);
                 break;
             
             default:
@@ -105,46 +105,46 @@ public class FrequencyGenerator
         }
     }
 
-    private void GenerateEqualTemperamentChord(Note rootNote, int octave, ChordType chordType, ref List<float> list)
+    private void GenerateEqualTemperamentChord(Pitch rootPitch, int octave, ChordType chordType, ref List<float> list)
     {
         switch (chordType)
         {
             case ChordType.Major:
-                list.Add(GetFrequency(rootNote, octave));
-                list.Add(GetFrequency(rootNote + 4, octave));
-                list.Add(GetFrequency(rootNote + 7, octave));
+                list.Add(GetFrequency(rootPitch, octave));
+                list.Add(GetFrequency(rootPitch + 4, octave));
+                list.Add(GetFrequency(rootPitch + 7, octave));
                 break;
             
             case ChordType.Minor:
-                list.Add(GetFrequency(rootNote, octave));
-                list.Add(GetFrequency(rootNote + 3, octave));
-                list.Add(GetFrequency(rootNote + 7, octave));
+                list.Add(GetFrequency(rootPitch, octave));
+                list.Add(GetFrequency(rootPitch + 3, octave));
+                list.Add(GetFrequency(rootPitch + 7, octave));
                 break;
 
             case ChordType.Seventh:
-                list.Add(GetFrequency(rootNote, octave));
-                list.Add(GetFrequency(rootNote + 3, octave));
-                list.Add(GetFrequency(rootNote + 7, octave));
-                list.Add(GetFrequency(rootNote + 10, octave));
+                list.Add(GetFrequency(rootPitch, octave));
+                list.Add(GetFrequency(rootPitch + 3, octave));
+                list.Add(GetFrequency(rootPitch + 7, octave));
+                list.Add(GetFrequency(rootPitch + 10, octave));
                 break;
             
             case ChordType.MajorSeventh:
-                list.Add(GetFrequency(rootNote, octave));
-                list.Add(GetFrequency(rootNote + 3, octave));
-                list.Add(GetFrequency(rootNote + 7, octave));
-                list.Add(GetFrequency(rootNote + 11, octave));
+                list.Add(GetFrequency(rootPitch, octave));
+                list.Add(GetFrequency(rootPitch + 3, octave));
+                list.Add(GetFrequency(rootPitch + 7, octave));
+                list.Add(GetFrequency(rootPitch + 11, octave));
                 break;
             
             case ChordType.Augmented:
-                list.Add(GetFrequency(rootNote, octave));
-                list.Add(GetFrequency(rootNote + 5, octave));
-                list.Add(GetFrequency(rootNote + 8, octave));
+                list.Add(GetFrequency(rootPitch, octave));
+                list.Add(GetFrequency(rootPitch + 5, octave));
+                list.Add(GetFrequency(rootPitch + 8, octave));
                 break;
             
             case ChordType.Diminished:
-                list.Add(GetFrequency(rootNote, octave));
-                list.Add(GetFrequency(rootNote + 3, octave));
-                list.Add(GetFrequency(rootNote + 6, octave));
+                list.Add(GetFrequency(rootPitch, octave));
+                list.Add(GetFrequency(rootPitch + 3, octave));
+                list.Add(GetFrequency(rootPitch + 6, octave));
                 break;
             
             default:
@@ -152,9 +152,9 @@ public class FrequencyGenerator
         }
     }
 
-    public float GetFrequency(Note note, int octave)
+    public float GetFrequency(Pitch pitch, int octave)
     {
-        return A4Frequency * Mathf.Pow(2.0f, ((float)(note + 2)) / 12f + (octave - 4));
+        return A4Frequency * Mathf.Pow(2.0f, ((float)(pitch + 2)) / 12f + (octave - 4));
     }
 
     public enum Intonation
@@ -173,7 +173,7 @@ public class FrequencyGenerator
         Diminished,
     }
 
-    public enum Note
+    public enum Pitch
     {
         C = 0,
         

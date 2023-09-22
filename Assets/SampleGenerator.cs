@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public static class NoteGenerator
+public static class SampleGenerator
 {
     private const float SuperSawDetuneCents = 15f;
     
-    public static void PlayNote(float frequency, float pan, NoteAttributes noteAttributes, List<SoundEffects.SoundEffectType> soundEffects = null)
+    public static void PlayNote(Synthesizer.Note note, Instrument instrument, float pan, List<SoundEffects.SoundEffectType> soundEffects = null)
     {
-        var clipDuration = (noteAttributes.Duration + noteAttributes.Envelope.Release) + 0.0f;
+        var clipDuration = (note.Interval.TimeDuration + instrument.Envelope.Release) + 0.0f;
 
         var sampleCount = (int)(clipDuration * AudioSettings.outputSampleRate);
         var sampleRate = (float)AudioSettings.outputSampleRate;
@@ -19,7 +19,7 @@ public static class NoteGenerator
         for (var i = 0; i < sampleCount; i++)
         {
             var t = i / sampleRate;
-            var sample = GetSample(t, frequency, noteAttributes);
+            var sample = GetSample(t, note, instrument);
             samples[i, 0] = Mathf.Lerp(1f, 0f, pan) * sample;
             samples[i, 1] = Mathf.Lerp(1f, 0f, -pan) * sample;
         }
@@ -47,11 +47,9 @@ public static class NoteGenerator
         AudioSourcePool.Instance.PlayAudioClip(audioClip);
     }
 
-    public struct NoteAttributes
+    public struct Instrument
     {
         public WaveFormType WaveFormType;
-        public float Amplitude;
-        public float Duration;
         public Envelope Envelope;
     }
     
@@ -64,19 +62,19 @@ public static class NoteGenerator
         SuperSaw = 4,
     }
     
-    private static float GetSample(float t, float f, NoteAttributes noteAttributes)
+    private static float GetSample(float t, Synthesizer.Note note, Instrument instrument)
     {
-        var sample = noteAttributes.WaveFormType switch
+        var sample = instrument.WaveFormType switch
         {
-            WaveFormType.SawTooth => SawtoothWave(t, f, noteAttributes.Amplitude),
-            WaveFormType.Sine => SineWave(t, f, noteAttributes.Amplitude),
-            WaveFormType.Square => SquareWave(t, f, noteAttributes.Amplitude),
-            WaveFormType.Triangle => TriangleWave(t, f, noteAttributes.Amplitude),
-            WaveFormType.SuperSaw => SuperSawWave(t, f, noteAttributes.Amplitude),
-            _ => throw new ArgumentOutOfRangeException(nameof(noteAttributes.WaveFormType), noteAttributes.WaveFormType, null)
+            WaveFormType.SawTooth => SawtoothWave(t, note.Frequency, note.Amplitude),
+            WaveFormType.Sine => SineWave(t, note.Frequency, note.Amplitude),
+            WaveFormType.Square => SquareWave(t, note.Frequency, note.Amplitude),
+            WaveFormType.Triangle => TriangleWave(t, note.Frequency, note.Amplitude),
+            WaveFormType.SuperSaw => SuperSawWave(t, note.Frequency, note.Amplitude),
+            _ => throw new ArgumentOutOfRangeException(nameof(instrument.WaveFormType), instrument.WaveFormType, null)
         };
 
-        return sample * noteAttributes.Envelope.CalculateValue(t, noteAttributes.Duration);
+        return sample * instrument.Envelope.CalculateValue(t, note.Interval.TimeDuration);
     }
 
     public struct Envelope

@@ -5,16 +5,24 @@ using UnityEngine;
 
 public class Arpeggiator
 {
-    public static IEnumerator PlaySequence(List<float> notes, NoteGenerator.NoteAttributes noteAttributes, List<SoundEffects.SoundEffectType> soundEffects, int repetitions)
+    public static IEnumerator PlaySequence(List<float> frequencies, float amplitude, Synthesizer.Interval interval, float gate,
+        int repetitions, SampleGenerator.Instrument instrument, List<SoundEffects.SoundEffectType> soundEffects)
     {
         var timer = Time.realtimeSinceStartup;
         
         for (var i = 0; i < repetitions; i++)
         {
-            foreach (var note in notes)
+            foreach (var frequency in frequencies)
             {
-                NoteGenerator.PlayNote(note, 0.0f, noteAttributes, soundEffects);
-                yield return new WaitForSeconds(0.2f - (timer - Time.realtimeSinceStartup));
+                var note = new Synthesizer.Note()
+                {
+                    Frequency = frequency,
+                    Amplitude = amplitude,
+                    Interval = interval * gate
+                };
+                
+                SampleGenerator.PlayNote(note, instrument, 0.0f, soundEffects);
+                yield return new WaitForSeconds(interval.TimeDuration - (timer - Time.realtimeSinceStartup));
                 timer = Time.realtimeSinceStartup;
             }
         }
